@@ -1,0 +1,53 @@
+FUNCTION_BLOCK game_strategy
+
+VAR_INPUT
+	match_result : REAL;
+	time_left : REAL;
+END_VAR
+
+
+VAR_OUTPUT
+	game_strategy : REAL;
+END_VAR
+
+
+FUZZIFY match_result
+	TERM losing := trian 0 0.5 1;
+	TERM standoff := trian 1 1.5 2;
+	TERM winning := trian 2 2.5 3;
+END_FUZZIFY
+
+
+FUZZIFY time_left
+	TERM start := trape 0 0 1 2.5;
+	TERM mid_game := gauss 4.5 1 5;
+	TERM almost_end := trape 6.5 8 9 9;
+END_FUZZIFY
+
+
+DEFUZZIFY game_strategy
+	TERM mostly_attack := trian 0 0.5 1;
+	TERM mostly_defence := trian 1 1.5 2;
+	METHOD : COG;
+	DEFAULT := 0;
+END_DEFUZZIFY
+
+
+RULEBLOCK game_strategy
+	AND : MIN;
+	ACT : MIN;
+	ACCU : MAX;
+	
+	RULE 1 : IF match_result IS losing AND time_left IS start OR time_left IS mid_game THEN game_strategy IS mostly_attack; 
+	
+	RULE 2 : IF match_result IS losing AND time_left IS almost_end THEN game_strategy IS mostly_defence;
+	
+	RULE 3 : IF match_result IS standoff THEN game_strategy IS mostly_attack;
+	
+	RULE 4 : IF match_result IS winning AND time_left IS start OR time_left IS mid_game THEN game_strategy IS mostly_attack;
+	
+	RULE 5 : IF match_result IS winning AND time_left IS almost_end THEN game_strategy IS mostly_attack;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK

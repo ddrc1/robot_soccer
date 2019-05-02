@@ -1,0 +1,57 @@
+FUNCTION_BLOCK player_velocity
+
+VAR_INPUT
+    lateral_distance : REAL;
+    opponent_goal_orientation : REAL;
+	ball_distance : REAL;
+END_VAR
+
+
+VAR_OUTPUT
+    player_velocity : REAL;
+END_VAR
+
+
+FUZZIFY lateral_distance
+	TERM near := trape 0 0 2 3;
+	TERM far := trape 2 4 9 9;
+END_FUZZIFY
+
+
+FUZZIFY ball_distance
+	TERM near := trape 0 0 2 3;
+	TERM far := trape 2 4 9 9;
+END_FUZZIFY
+
+
+FUZZIFY opponent_goal_orientation
+	TERM against := gauss 88 7;
+	TERM mid_term_up := gauss 63 7; 
+	TERM mid_term_down := gauss 13 7;
+	TERM ahead := gauss 37 6;
+END_FUZZIFY
+
+
+DEFUZZIFY player_velocity
+	TERM slow := trape 0 1 2 3;
+	TERM moderate_slow := trape 2 3 4 5;
+	TERM moderate_fast := trape 4 5 6 7;
+	TERM fast := trape 6 7 8 9;
+	METHOD : COA;
+	DEFAULT := 0;
+END_DEFUZZIFY
+
+RULEBLOCK No1
+    AND : MIN;
+    ACT : MIN;
+    ACCU : MAX;
+	
+	RULE 1 : IF lateral_distance IS near THEN player_velocity IS slow;
+	
+	RULE 2 : IF ball_distance IS near AND opponent_goal_orientation IS ahead THEN player_velocity IS moderate_fast;
+	
+	RULE 3 : IF ball_distance IS far THEN player_velocity IS fast;
+	
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
